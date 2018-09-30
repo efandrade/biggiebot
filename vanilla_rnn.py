@@ -32,14 +32,8 @@ def pred2str(predic,ind_dict):
     return txt
 
 #Calculates the 
-def lossFun(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, bh, Why, by):
+def lossFun_old(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, bh, Why, by):
 
-    W = Whh
-    U = Wxh
-    sbias = bh
-    V = Why
-    ybias = by
-    
     ###forward propagation###
     
     #number of inputs
@@ -89,3 +83,71 @@ def lossFun(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, bh, W
         np.clip(dparam,-5,5,out=dparam)
 
     return loss, dWxh, dWhh, dWhy, dbh, dby, y
+
+def lossFun(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, bh, Why, by):
+
+    #x = inputs
+    outputs = targets
+    s_m1 = init_h
+    
+    
+    W = Whh
+    U = Wxh
+    sbias = bh
+    V = Why
+    ybias = by
+    
+    ###forward propagation###
+    
+    #number of inputs
+    sequence_length = len(inputs)
+    
+    #vectorized inputs
+    x = charVec[inputs].T
+    #create state matrix
+    s_t = np.zeros([hidden_layer_size,sequence_length])
+    #add initial state to the end of hs matrix for coveience in the for loop below
+    s_t[:,-1] = s_m1[:,0]
+    loss = 0
+    
+    #calculates all the states (s_t) in the rnn
+    for i in range(sequence_length):
+        #s_t is calculated with previous state s_t-1 and current input x_t
+        s_t[:,i] = np.tanh( np.dot(W,s_t[:,i-1]) + np.dot(U,x[:,i]) + sbias )
+    
+    #calculate unnormalized probability outputs y for each state s_t
+    y = np.dot(V,s_t) + np.tile(ybias,sequence_length)
+    #normalize probabilities y
+    p = np.exp(y) / np.sum(np.exp(y),axis=0)
+    #Cost function
+    loss += np.sum(-np.log(p[targets,range(sequence_length)]))
+    
+    next_s_tm1 = np.expand_dims(s_t[:,-1],axis=1)
+    
+#back propagation
+    dU = np.zeros(U.shape)
+    dW = np.zeros(W.shape)
+    dV = np.zeros(V.shape)
+    
+    dsbias = np.zeros(sbias.shape)
+    #dybias = np.zeros(ybias.shape)
+    dhnext = np.expand_dims(np.zeros(s_t[:,0].shape),axis=1)
+    
+    dy = np.copy(p) - charVec[targets].T
+    dV += np.dot(dy,s_t.T)
+    dybias = np.sum(dy,axis=1)[:,np.newaxis]
+    #hs[:,-1] = init_h[:,0]
+    
+    for i in range(sequence_length)[::-1]:
+        dsbias = np.dot(V.T, dy[:,i][:,np.newaxis]) + dhnext
+        dhraw = (1 - np.expand_dims(s_t[:,i] * s_t[:,i],axis=1)) * dsbias
+        dsbias += dhraw
+        dU += np.dot(dhraw, x[:,i][:,np.newaxis].T)
+        dW += np.dot(dhraw, s_t[:,i-1][:,np.newaxis].T)
+        dhnext = np.dot(W.T, dhraw)
+
+    for dparam in [dU,dW,dV,dsbias,dybias]:
+        np.clip(dparam,-5,5,out=dparam)
+
+    return loss, dU, dW, dV, dsbias, dybias, next_s_tm1
+
