@@ -6,35 +6,29 @@
 import numpy as np
 
 #Generates a sequence using the output of the train algorithm
-def prediction(h, seed, dim, length, Whh, Wxh, bh, Why, by):
-    #h:         Previous hidden state
+def prediction(s_tm1, seed, dim, length, W, U, sbias, V, ybias,random=True):
+    #s_tm1:     Previous state
     #seed:      Initial input to begin squence
-    #dim:       Number of features
+    #dim:       Dimension of vector space (number of features)
     #length:    Lenght of sequence to be generated
     
-    W = Whh
-    U = Wxh
-    sbias = bh
-    V = Why
-    ybias = by
-    s_tm1 = h
-    s_t = s_tm1
-    
+    s_t = s_tm1  
     x = np.zeros([dim,1])
     x[seed,0] = 1
     predic = []
-    #WhhWxh = np.concatenate((Whh,Wxh),axis=1)
-    #hx = np.concatenate((h,x),axis=0)
-    #h = np.tanh(np.dot(WhhWxh,hx) + bh)
     
     for i in range(length):
-        s_t = np.tanh( np.dot(W,s_t) + np.dot(U,x) + sbias))
-        y = np.dot(V,s_t) + ybias   
+        s_t = np.tanh( np.dot(W,s_t) + np.dot(U,x) + sbias)
+        y = np.dot(V,s_t) + ybias
         p = np.exp(y)/np.sum(np.exp(y))
-        ix = np.random.choice(range(dim),p=p.ravel())
+        if random == True:
+            ix = np.random.choice(range(dim),p=p.ravel())
+        else:
+            ix = np.argmax(p)
         x = np.zeros([dim,1])
         x[ix] = 1
         predic.append(ix)
+    
     return predic
     
 def pred2str(predic,ind_dict):
