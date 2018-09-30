@@ -1,8 +1,5 @@
 #/usr/bin/env python
 
-#Generates sequence from an initial input seed using the provided model and
-#   length
-
 import numpy as np
 
 #Generates a sequence using the output of the train algorithm
@@ -102,47 +99,36 @@ def lossFun_old(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, b
 
 def lossFun(inputs, targets, s_m1, hidden_layer_size, charVec, W, U, sbias, V, ybias):
 
-    ###forward propagation###
-    
-    #number of inputs
-    sequence_length = len(inputs)
-    
-    #vectorized inputs
-    x = charVec[inputs].T
-    #create state matrix
-    s_t = np.zeros([hidden_layer_size,sequence_length])
-    #add initial state to the end of hs matrix for coveience in the for loop below
-    s_t[:,-1] = s_m1[:,0]
+    #Forward Propagation
+    sequence_length = len(inputs)                               #number of inputs
+    x = charVec[inputs].T                                       #vectorized inputs
+    s_t = np.zeros([hidden_layer_size,sequence_length])         #create state matrix
+    s_t[:,-1] = s_m1[:,0]                                       #add initial state to the end of hs matrix for coveience in the for loop below
     loss = 0
     
     #calculates all the states (s_t) in the rnn
     for i in range(sequence_length):
-        #s_t is calculated with previous state s_t-1 and current input x_t
-        s_t[:,i] = np.tanh( np.dot(W,s_t[:,i-1]) + np.dot(U,x[:,i]) + np.squeeze(sbias))
+        s_t[:,i] = np.tanh( np.dot(W,s_t[:,i-1]) + np.dot(U,x[:,i]) + np.squeeze(sbias))    #s_t is calculated with previous state s_t-1 and current input x_t
     
-    #calculate unnormalized probability outputs y for each state s_t
-    y = np.dot(V,s_t) + np.tile(ybias,sequence_length)
-    #normalize probabilities y
-    p = np.exp(y) / np.sum(np.exp(y),axis=0)
-    #Cost function
-    loss += np.sum(-np.log(p[targets,range(sequence_length)]))
+    y = np.dot(V,s_t) + np.tile(ybias,sequence_length)          #calculate unnormalized probability outputs y for each state s_t
+    p = np.exp(y) / np.sum(np.exp(y),axis=0)                    #normalize probabilities y
+    loss += np.sum(-np.log(p[targets,range(sequence_length)]))  #Cost function
+    next_s_tm1 = np.expand_dims(s_t[:,-1],axis=1)               #current state which will be the initial state for the next iteration
     
-    next_s_tm1 = np.expand_dims(s_t[:,-1],axis=1)
-    
-#back propagation
+    #Backpropagation
     dU = np.zeros(U.shape)
     dW = np.zeros(W.shape)
     dV = np.zeros(V.shape)
     
     dsbias = np.zeros(sbias.shape)
-    #dybias = np.zeros(ybias.shape)
     dhnext = np.expand_dims(np.zeros(s_t[:,0].shape),axis=1)
     
-    dy = np.copy(p) - charVec[targets].T
-    dV += np.dot(dy,s_t.T)
-    dybias = np.sum(dy,axis=1)[:,np.newaxis]
-    #hs[:,-1] = init_h[:,0]
+    #Backpropagation into current state through softmax
+    dy = np.copy(p) - charVec[targets].T                        #error in predicted output
+    dV += np.dot(dy,s_t.T)                                      #rate of change in cost function with respect to V (dL/dV) for softmax
+    dybias = np.sum(dy,axis=1)[:,np.newaxis]                    #rate of change in cost function with respect to bias coefficients (dL/dybias) for softmax
     
+    #Backpropagation into previous states
     for i in range(sequence_length)[::-1]:
         dsbias = np.dot(V.T, dy[:,i][:,np.newaxis]) + dhnext
         dhraw = (1 - np.expand_dims(s_t[:,i] * s_t[:,i],axis=1)) * dsbias
