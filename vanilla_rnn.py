@@ -34,6 +34,12 @@ def pred2str(predic,ind_dict):
 #Calculates the 
 def lossFun(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, bh, Why, by):
 
+    W = Whh
+    U = Wxh
+    sbias = bh
+    V = Why
+    ybias = by
+    
     ###forward propagation###
     
     #number of inputs
@@ -46,10 +52,10 @@ def lossFun(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, bh, W
     hs[:,-1] = init_h[:,0]
     loss = 0
     
-    WhhWxh = np.concatenate((Whh,Wxh),axis=1)
+    WhhWxhbh = np.concatenate((Whh,Wxh,bh),axis=1)
     for i in range(0,len(inputs)):
-        hx = np.concatenate((hs[:,i-1],xs[:,i]),axis=0)
-        hs[:,i] = np.tanh(np.dot(WhhWxh,hx) + np.squeeze(bh))
+        hx1 = np.concatenate((hs[:,i-1],xs[:,i],np.ones(1)),axis=0)
+        hs[:,i] = np.tanh(np.dot(WhhWxhbh,hx1))
         
     ys = np.dot(Why,hs) + np.tile(by,input_length)
     ps = np.exp(ys) / np.sum(np.exp(ys),axis=0)
