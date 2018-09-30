@@ -12,14 +12,24 @@ def prediction(h, seed, dim, length, Whh, Wxh, bh, Why, by):
     #dim:       Number of features
     #length:    Lenght of sequence to be generated
     
+    W = Whh
+    U = Wxh
+    sbias = bh
+    V = Why
+    ybias = by
+    s_tm1 = h
+    s_t = s_tm1
+    
     x = np.zeros([dim,1])
     x[seed,0] = 1
     predic = []
-    WhhWxh = np.concatenate((Whh,Wxh),axis=1)
+    #WhhWxh = np.concatenate((Whh,Wxh),axis=1)
+    #hx = np.concatenate((h,x),axis=0)
+    #h = np.tanh(np.dot(WhhWxh,hx) + bh)
+    
     for i in range(length):
-        hx = np.concatenate((h,x),axis=0)
-        h = np.tanh(np.dot(WhhWxh,hx) + bh)
-        y = np.dot(Why,h) + by
+        s_t = np.tanh( np.dot(W,s_t) + np.dot(U,x) + sbias))
+        y = np.dot(V,s_t) + ybias   
         p = np.exp(y)/np.sum(np.exp(y))
         ix = np.random.choice(range(dim),p=p.ravel())
         x = np.zeros([dim,1])
@@ -84,19 +94,8 @@ def lossFun_old(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, b
 
     return loss, dWxh, dWhh, dWhy, dbh, dby, y
 
-def lossFun(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, bh, Why, by):
+def lossFun(inputs, targets, s_m1, hidden_layer_size, charVec, W, U, sbias, V, ybias):
 
-    #x = inputs
-    outputs = targets
-    s_m1 = init_h
-    
-    
-    W = Whh
-    U = Wxh
-    sbias = bh
-    V = Why
-    ybias = by
-    
     ###forward propagation###
     
     #number of inputs
@@ -113,7 +112,7 @@ def lossFun(inputs, targets, init_h, hidden_layer_size, charVec, Whh, Wxh, bh, W
     #calculates all the states (s_t) in the rnn
     for i in range(sequence_length):
         #s_t is calculated with previous state s_t-1 and current input x_t
-        s_t[:,i] = np.tanh( np.dot(W,s_t[:,i-1]) + np.dot(U,x[:,i]) + sbias )
+        s_t[:,i] = np.tanh( np.dot(W,s_t[:,i-1]) + np.dot(U,x[:,i]) + np.squeeze(sbias))
     
     #calculate unnormalized probability outputs y for each state s_t
     y = np.dot(V,s_t) + np.tile(ybias,sequence_length)
