@@ -10,29 +10,41 @@ def prediction(s_tm1, seed, dim, length, W, U, sbias, V, ybias,random=True):
     #s_tm1:     Previous state
     #seed:      Initial input to begin squence
     #dim:       Dimension of vector space (number of features)
-    #length:    Lenght of sequence to be generated
+    #length:    Length of sequence to be generated
+    #W:         Matrix of coefficients that transforms the previous state (s_t-1) into the current state (s_t)
+    #U:         Matrix of coefficients that transforms the current input (x_t) into the current state (s_t)
+    #sbias:     Biasies for calculating the current state (s_t)
+    #V:         Matrix of coefficients that transforms the current state (s_t) into the predicted output (y_t)
+    #ybias:     Biasies for the calculating the predicted output (y_t)
     
-    s_t = s_tm1  
-    x = np.zeros([dim,1])
-    x[seed,0] = 1
-    predic = []
     
+    s_t = s_tm1             #Initial previous state
+    x = np.zeros([dim,1])   
+    x[seed,0] = 1           #Seed vector
+    predict = []
+    
+    
+    #start with seed, predicts next vector, then uses that predicted vector as the next 'seed' until sequence length is generated
     for i in range(length):
-        s_t = np.tanh( np.dot(W,s_t) + np.dot(U,x) + sbias)
-        y = np.dot(V,s_t) + ybias
-        p = np.exp(y)/np.sum(np.exp(y))
+        s_t = np.tanh( np.dot(W,s_t) + np.dot(U,x) + sbias)     #current state calculation
+        y = np.dot(V,s_t) + ybias                               #unnormalized probabilities for predicted output
+        p = np.exp(y)/np.sum(np.exp(y))                         #normalized probabilities for predicted output (sofmax)
         if random == True:
-            ix = np.random.choice(range(dim),p=p.ravel())
+            ix = np.random.choice(range(dim),p=p.ravel())       #randomly predicts output with given nomalized probabilities
         else:
-            ix = np.argmax(p)
+            ix = np.argmax(p)                                   #predicts output solely on the highest probability
         x = np.zeros([dim,1])
-        x[ix] = 1
-        predic.append(ix)
+        x[ix] = 1                                               #new seed vector for next prediction
+        predict.append(ix)                                      #sequence
     
-    return predic
+    return predict
+
+#Coverts sequence of numbers to the corresponding characters
+def pred2str(predict,ind_dict):
+    #predict:       Sequence of numbers
+    #ind_dict:      Corresponding numbers to characters
     
-def pred2str(predic,ind_dict):
-    txt = ''.join(ind_dict[ix] for ix in predic)
+    txt = ''.join(ind_dict[ix] for ix in predict)                #coverts sequence of numbers to the corresponding characters
     return txt
 
 #Calculates the 
