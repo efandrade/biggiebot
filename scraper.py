@@ -3,12 +3,11 @@
 import json
 import lyricsgenius as genius
 
-def getlyrics(artistname,songnames=None,tokenloc):
+def getlyrics(tokenloc,artistname,songnames=None):
     
     api_token = open(tokenloc,'r').read()
 
-    api_token = '9LwgN2hR6Cb7BAFikCIoKPixM7rfBUIT4M8iwAc3mAOAl7QhdN2obGwcl7Galy3_'
-    api = genius.Genius(api_token)
+    api = genius.Genius(api_token[0:-1])
     
     if songnames:
         artist = api.search_artist(artistname,max_songs=0)
@@ -20,4 +19,3 @@ def getlyrics(artistname,songnames=None,tokenloc):
         artist = api.search_artist(artistname,max_songs=3)
         
     artist.save_lyrics()
-    
