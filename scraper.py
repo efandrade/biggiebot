@@ -30,11 +30,25 @@ def artistlyrics(filename,song=0):
     length = len(lyrics)
     sections = []
     x1, x2 = 0, 0
-    pos = 0
-    end = len(lyrics)
+    artistlyrics = []
     
     while x1 != -1:
-    x1 = lyrics.find('[',pos)
-    x2 = lyrics.find(']',pos)
-    if x1 != -1:
-        sections.append([lyrics[x1:x2+1],x1,x2])
+        x1 = lyrics.find('[',pos)
+        x2 = lyrics.find(']',pos)
+        if x1 != -1:
+            sections.append([lyrics[x1:x2+1],x1,x2])
+        
+    for i in range(len(sections)):
+        if sections[i][0].lower().find('verse') != -1:
+            start = sections[i][2]+2
+            if i == len(sections):
+                end = len(lyrics)
+                else:
+                    end = sections[i+1][1]           
+            if featartist != []:
+                if sections[i][0].find(artist) != -1:
+                    artistlyrics.append(lyrics[start:end])
+                    else:
+                        artistlyrics.append(lyrics[start:end])
+
+    return ''.join(artistlyrics)
