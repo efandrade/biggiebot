@@ -14,7 +14,7 @@ def bychar(filename):
     num_chars = len(lyrics)                                     #number of total characters in text file
     charmat = np.identity(num_uniq_chars)                       #Matrix where the columns correspont to the vectors representation of the each entry (characters) in the dictionary
     
-    return charmat, char_dict, ind_dict, num_uniq_chars, num_chars
+    return lyrics, charmat, char_dict, ind_dict, num_uniq_chars, num_chars
 
 #Opens and reads text, returns word dictionaries for text file
 def byword(filename):

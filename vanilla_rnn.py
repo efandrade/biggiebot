@@ -98,6 +98,7 @@ def CostFun(inputs, targets, s_m1, hidden_layer_size, charVec, W, U, sbias, V, y
         dW += np.dot(dhraw, s_t[:,i-1][:,np.newaxis].T)
         dhnext = np.dot(W.T, dhraw)
 
+    #Threshold in the calculated rate of change in cost function to prevent exploding gradients
     for dparam in [dU,dW,dV,dsbias,dybias]:
         np.clip(dparam,-5,5,out=dparam)
 
