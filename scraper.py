@@ -19,3 +19,22 @@ def getlyrics(tokenloc,artistname,songnames=None):
         artist = api.search_artist(artistname,max_songs=3)
         
     artist.save_lyrics()
+    
+def artistlyrics(filename,song=0):
+
+    jsonfile = open(filename,'r').read()
+    database = json.loads(jsonfile)
+    artist = database['artist']
+    lyrics = database['songs'][song]['lyrics']
+    
+    length = len(lyrics)
+    sections = []
+    x1, x2 = 0, 0
+    pos = 0
+    end = len(lyrics)
+    
+    while x1 != -1:
+    x1 = lyrics.find('[',pos)
+    x2 = lyrics.find(']',pos)
+    if x1 != -1:
+        sections.append([lyrics[x1:x2+1],x1,x2])
