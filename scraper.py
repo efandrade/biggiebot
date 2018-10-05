@@ -22,16 +22,20 @@ def getlyrics(tokenloc,artistname,songnames=None):
         artist = api.search_artist(artistname,max_songs=3)
         
     artist.save_lyrics()
+    return 'Lyrics_' +  ''.join(artist.name.split()) + '.json'
 
 #Opens json and returns only verses pertaining to the artist
-def artistlyrics(filename,numsongs=None):
+def artistlyrics(filename,numsongs=None,alias=None):
     #filename:      Location of json file
     #numsongs:      Specify if you want to return verse of a particular song, does all the songs by default
 
     jsonfile = open(filename,'r').read()
     database = json.loads(jsonfile)
-    artist = database['artist']
+    artist = [database['artist']]
     
+    if alias !=None:
+        artist = artist + alias
+        
     if numsongs == None:
         numsongs = len(database['songs'])
     else:
@@ -53,18 +57,35 @@ def artistlyrics(filename,numsongs=None):
             if x1 != -1:
                 sections.append([lyrics[x1:x2+1],x1,x2])
                 pos = x2 + 2
-        
+
         for i in range(len(sections)):
-            if sections[i][0].lower().find('verse') != -1:
-                start = sections[i][2]+2
-                if i == len(sections):
-                    end = len(lyrics)
-                else:
-                    end = sections[i+1][1]
+            t = 0
+            for j in range(len(artist)):
+                t += (sections[i][0].lower()[1:-1] == artist[j].lower())
+
+            start = sections[i][2]+2
+            if i == len(sections)-1:
+                end = len(lyrics)
+            else:
+                end = sections[i+1][1]
+
+            if (sections[i][0].lower().find('verse') != -1):
                 if featartist != []:
-                    if sections[i][0].find(artist) != -1:
-                        artistlyrics.append(lyrics[start:end])
+                    t=0
+                    for j in range(len(artist)):
+                        t += (sections[i][0].lower().find(artist[j].lower())==-1)
+                    if t > 0:
+                        artistsonglyrics.append(lyrics[start:end])
                 else:
                         artistsonglyrics.append(lyrics[start:end])
+            elif t > 0:
+                artistsonglyrics.append(lyrics[start:end])
+                
         artistlyrics.append(''.join(artistsonglyrics))
-    return ''.join(artistlyrics)
+    
+    newfilename = database['artist'] + ' lyrics.txt'
+    savefile = open(newfilename,'w')
+    print(''.join(artistlyrics),file=savefile)
+    savefile.close()
+    
+    return(newfilename)
