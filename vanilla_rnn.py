@@ -2,6 +2,18 @@
 
 import numpy as np
 
+#Initialize coeffiecient matricies
+def initmat(hidden_layer_size, num_uniq_chars):
+    W = np.random.randn(hidden_layer_size, hidden_layer_size)/100
+    U = np.random.randn(hidden_layer_size, num_uniq_chars)/100
+    V = np.random.randn(num_uniq_chars, hidden_layer_size)/100
+
+    sbias = np.zeros([hidden_layer_size,1])
+    ybias = np.zeros([num_uniq_chars,1])
+
+    return W,U,V,sbias,ybias
+
+
 #Generates a sequence using the output of the train algorithm
 def prediction(s_tm1, seed, dim, length, W, U, sbias, V, ybias,random=True):
     #s_tm1:     Previous state
