@@ -20,6 +20,7 @@ def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, s
     n = 0
     p = 0
     iteration= 0
+    barpro = np.int(np.round(printiteration/10))
 
     while loss > loss_goal:
    
@@ -43,7 +44,7 @@ def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, s
             iteration = n
             print( 'Iteration %d, loss %f\n' % (n,loss))
             printProgressBar(0, printiteration, prefix = 'Next ' + str(printiteration) + 'th Iteration', length = 35)
-        if n % 1000 == 0:
+        if n % barpro == 0:
             printProgressBar(n-iteration, printiteration, prefix = 'Next ' + str(printiteration) + 'th Iteration', length = 35)
     
         for param, dparam, mem in zip([U, W, V, sbias, ybias], [dU, dW, dV, dsbias, dybias], [mU, mW, mV, msbias, mybias]):
