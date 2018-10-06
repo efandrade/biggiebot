@@ -4,7 +4,7 @@ import vanilla_rnn as vrnn
 import numpy as np
 from IPython.display import clear_output
 
-def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, sequence_length, hidden_layer_size=10, learning_rate=1e-1, loss_goal=1, printiteration=3000):
+def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, sequence_length, hidden_layer_size=10, learning_rate=1e-1, loss_goal=1, prediction_len=100, printiteration=3000):
 
     W,U,V,sbias,ybias = vrnn.initmat(hidden_layer_size,num_uniq_chars)
 
@@ -26,15 +26,17 @@ def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, s
         if p+sequence_length+1 >= num_chars or n == 0:
             init_h = np.zeros([hidden_layer_size,1])
             p = 0
-            inputs = [char_dict[i] for i in lyrics[p:p+sequence_length]]
-            targets = [char_dict[i] for i in lyrics[p+1:p+sequence_length+1]]
+        inputs = [char_dict[i] for i in lyrics[p:p+sequence_length]]
+        targets = [char_dict[i] for i in lyrics[p+1:p+sequence_length+1]]
 
         loss, dU, dW, dV, dsbias, dybias, init_h = vrnn.CostFun(inputs, targets, init_h, hidden_layer_size,charVec,W,U,sbias,V,ybias)
         loss_track.append(loss)
     
         if n % printiteration == 0:
             clear_output()
-            sample_ix = vrnn.prediction(init_h, inputs[0], num_uniq_chars, 100, W, U, sbias, V, ybias, random=True)
+            print('Predicted sequence: ' )
+            print('=============================')
+            sample_ix = vrnn.prediction(init_h, inputs[0], num_uniq_chars, prediction_len, W, U, sbias, V, ybias, random=True)
             print(vrnn.pred2str(sample_ix, ind_dict,space=True))
             print('=============================')
         if n % printiteration == 0:
@@ -50,6 +52,10 @@ def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, s
             
         p = p + sequence_length
         n = n + 1
+    print('\n\nDone!')
+    print('Iteration: ' + str(iteration) + ' | Loss: ' + str(loss))
+    
+    return loss_track, W, U, V, sbias, ybias
 
 # Print iterations progress        
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
