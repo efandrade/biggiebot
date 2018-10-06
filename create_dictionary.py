@@ -21,7 +21,7 @@ def byword(filename):
     #filename:  Name of the text file to open
     
     lyrics = open(filename,'r').read()                          #read text file
-    lyrics = lyrics.replace('\n',' \n ').split(' ')              #creates array of words keeping formating information
+    lyrics = lyrics.replace('\n',' \n ').split(' ')             #creates array of words keeping formating information
     words = list(set(lyrics))                                   #lists words in text file
     word_dict = {word:ind for ind,word in enumerate(words)}     #create a dictionary for converting words to corresponding number (index)
     ind_dict = {ind:word for ind,word in enumerate(words)}      #create a dictionary for converting numbers (index) to corresponding characters
