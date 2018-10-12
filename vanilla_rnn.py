@@ -3,13 +3,16 @@
 import numpy as np
 
 #Initialize coeffiecient matricies
-def initmat(hidden_layer_size, num_uniq_chars):
+def initmat(hidden_layer_size, num_uniq_feat):
+    #hidden_layer_size:         Number of nodes in the hidden layer
+    #num_uniq_chars:            Number of unique features
+    
     W = np.random.randn(hidden_layer_size, hidden_layer_size)/100
-    U = np.random.randn(hidden_layer_size, num_uniq_chars)/100
-    V = np.random.randn(num_uniq_chars, hidden_layer_size)/100
+    U = np.random.randn(hidden_layer_size, num_uniq_feat)/100
+    V = np.random.randn(num_uniq_feat, hidden_layer_size)/100
 
     sbias = np.zeros([hidden_layer_size,1])
-    ybias = np.zeros([num_uniq_chars,1])
+    ybias = np.zeros([num_uniq_feat,1])
 
     return W,U,V,sbias,ybias
 
@@ -101,7 +104,7 @@ def CostFun(inputs, targets, s_m1, hidden_layer_size, charVec, W, U, sbias, V, y
     dV += np.dot(dy,s_t.T)                                      #rate of change in cost function with respect to V (dL/dV) for softmax
     dybias = np.sum(dy,axis=1)[:,np.newaxis]                    #rate of change in cost function with respect to bias coefficients (dL/dybias) for softmax
     
-    #Backpropagation into previous states
+    #Backpropagation into previous states, see http://www.wildml.com/2015/10/recurrent-neural-networks-tutorial-part-3-backpropagation-through-time-and-vanishing-gradients/
     for i in range(sequence_length)[::-1]:
         dsbias = np.dot(V.T, dy[:,i][:,np.newaxis]) + dhnext
         dhraw = (1 - np.expand_dims(s_t[:,i] * s_t[:,i],axis=1)) * dsbias

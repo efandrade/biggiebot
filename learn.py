@@ -6,13 +6,8 @@ from IPython.display import clear_output
 
 def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, sequence_length, hidden_layer_size=10, learning_rate=1e-1, loss_goal=1, prediction_len=100, printiteration=3000):
 
-    W,U,V,sbias,ybias = vrnn.initmat(hidden_layer_size,num_uniq_chars)
-
-    mW = np.zeros(W.shape)
-    mU = np.zeros(U.shape)
-    mV = np.zeros(V.shape)
-    msbias = np.zeros(sbias.shape)
-    mybias = np.zeros(ybias.shape)
+    W,U,V,sbias,ybias = vrnn.initmat(hidden_layer_size,num_uniq_chars)              #Initialize the coeffiecent matrecies and bias vectors    
+    mW, mU, mV, msbias, mybias = np.zeros(W.shape), np.zeros(U.shape), np.zeros(V.shape), np.zeros(sbias.shape), np.zeros(ybias.shape)
 
     loss_track = []
     loss = loss_goal + 1
@@ -23,16 +18,19 @@ def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, s
     barpro = np.int(np.round(printiteration/10))
 
     while loss > loss_goal:
-   
+
+        #reset sequence when at it reaches the end of the inputs provided
         if p+sequence_length+1 >= num_chars or n == 0:
             init_h = np.zeros([hidden_layer_size,1])
             p = 0
-        inputs = [char_dict[i] for i in lyrics[p:p+sequence_length]]
-        targets = [char_dict[i] for i in lyrics[p+1:p+sequence_length+1]]
+        inputs = [char_dict[i] for i in lyrics[p:p+sequence_length]]            #covert features to numbers
+        targets = [char_dict[i] for i in lyrics[p+1:p+sequence_length+1]]       #shift the sequence by one and convert features to numbers
 
+        #calculate cost function and the change to the coefficient matricies
         loss, dU, dW, dV, dsbias, dybias, init_h = vrnn.CostFun(inputs, targets, init_h, hidden_layer_size,charVec,W,U,sbias,V,ybias)
         loss_track.append(loss)
     
+        #Predict and print a sequence
         if n % printiteration == 0:
             clear_output()
             print('Predicted sequence: ' )
@@ -40,6 +38,7 @@ def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, s
             sample_ix = vrnn.prediction(init_h, inputs[0], num_uniq_chars, prediction_len, W, U, sbias, V, ybias, random=True)
             print(vrnn.pred2str(sample_ix, ind_dict,space=True))
             print('=============================')
+        #Print progression bar
         if n % printiteration == 0:
             iteration = n
             print( 'Iteration %d, loss %f\n' % (n,loss))
@@ -47,6 +46,7 @@ def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, s
         if n % barpro == 0:
             printProgressBar(n-iteration, printiteration, prefix = 'Next ' + str(printiteration) + 'th Iteration', length = 35)
     
+        #Update the coefficient matricies
         for param, dparam, mem in zip([U, W, V, sbias, ybias], [dU, dW, dV, dsbias, dybias], [mU, mW, mV, msbias, mybias]):
             mem += dparam * dparam
             param += -learning_rate * dparam / np.sqrt(mem + 1e-8)
