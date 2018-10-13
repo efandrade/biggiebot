@@ -60,17 +60,14 @@ def train_rnn(lyrics, charVec, char_dict, ind_dict, num_uniq_chars, num_chars, s
 
 # Print iterations progress        
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-    """
+    #iteration:     current iteration (Int)
+    #total:         total iterations (Int)
+    #prefix:        prefix string (Str)
+    #suffix:        suffix string (Str)
+    #decimals:      positive number of decimals in percent complete (Int)
+    #length:        character length of bar (Int)
+    #fill:          bar fill character (Str)
+
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + '-' * (length - filledLength)
